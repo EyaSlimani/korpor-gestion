@@ -154,7 +154,7 @@ exports.signUp = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
@@ -164,7 +164,7 @@ exports.signUp = async (req, res) => {
     const { otp: verificationCode, expiry: expiryTime } = generateOTP({ digits: 4, expiryMinutes: 10 });
 
     // Determine new account number
-    const lastUser = await User.findOne().sort({ accountNo: -1 });
+    const lastUser = await User.findOne({ order: [['accountNo', 'DESC']] });
     const newAccountNo = lastUser && lastUser.accountNo ? lastUser.accountNo + 1 : 1000;
 
     const newUser = new User({
@@ -211,7 +211,7 @@ exports.verifysign = async (req, res) => {
       return res.status(400).json({ message: "Email and code are required" });
     }
 
-    const user = await User.findOne({ email });
+    const existingUser = await User.findOne({ where: { email } });
     if (!user || user.resetCode !== code) {
       return res.status(400).json({ message: "Invalid or expired verification code" });
     }
@@ -239,7 +239,7 @@ exports.signIn = async (req, res) => {
       return res.status(400).json({ message: "Email and password are required" });
     }
 
-    const user = await User.findOne({ email });
+    const existingUser = await User.findOne({ where: { email } });
     if (!user) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
@@ -284,8 +284,7 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    let existingUser = await User.findOne({ email });
-    if (existingUser) {
+    let existingUser = await User.findOne({ where: { email } });    if (existingUser) {
       // Re-register expired or unverified user
       if (existingUser.expired || (existingUser.approvalStatus === 'unverified' && !existingUser.isVerified)) {
         console.log("Re-registering expired/unverified user...");
@@ -326,7 +325,7 @@ exports.register = async (req, res) => {
     console.log("Registering new user...");
     const hashedPassword = await bcrypt.hash(password, 10);
     const { otp: verificationCode, expiry: expirationTime } = generateOTP({ digits: 6, expiryMinutes: 5 });
-    const lastUser = await User.findOne().sort({ accountNo: -1 });
+    const lastUser = await User.findOne({ order: [['accountNo', 'DESC']] });
     const newAccountNo = lastUser && lastUser.accountNo ? lastUser.accountNo + 1 : 1000;
 
     const newUser = new User({
@@ -378,7 +377,7 @@ exports.verifyregister = async (req, res) => {
       return res.status(400).json({ message: "Email and code are required" });
     }
 
-    const user = await User.findOne({ email });
+    const existingUser = await User.findOne({ where: { email } });
     if (!user || user.resetCode !== code) {
       return res.status(400).json({ message: "Invalid or expired verification code" });
     }
@@ -408,7 +407,7 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: "Email and password are required" });
     }
 
-    const user = await User.findOne({ email });
+    const existingUser = await User.findOne({ where: { email } });
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
@@ -451,7 +450,7 @@ exports.forgotPassword = async (req, res) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ message: "Email is required" });
     
-    const user = await User.findOne({ email });
+    const existingUser = await User.findOne({ where: { email } });
     if (!user) return res.status(400).json({ message: "User not found" });
 
     // Generate a 6-digit reset code valid for 10 minutes
@@ -483,7 +482,7 @@ exports.verifyCode = async (req, res) => {
       return res.status(400).json({ message: "Email and code are required" });
     }
 
-    const user = await User.findOne({ email });
+    const existingUser = await User.findOne({ where: { email } });
     if (!user || user.resetCode !== code) {
       return res.status(400).json({ message: "Invalid or expired verification code" });
     }
@@ -505,7 +504,7 @@ exports.resetPassword = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const user = await User.findOne({ email });
+    const existingUser = await User.findOne({ where: { email } });
     if (!user || user.resetCode !== code) {
       return res.status(400).json({ message: "Invalid or expired verification code" });
     }

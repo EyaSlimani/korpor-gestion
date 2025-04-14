@@ -19,6 +19,7 @@ import { PasswordInput } from '@/components/password-input'
 
 type UserAuthFormProps = HTMLAttributes<HTMLDivElement>
 
+
 const formSchema = z.object({
   email: z
     .string()

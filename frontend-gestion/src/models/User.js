@@ -1,20 +1,33 @@
-const mongoose = require('mongoose');
+// src/models/User.js (Sequelize version)
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/db');
+const Role = require('./Role');
 
-const userSchema = new mongoose.Schema({
-  accountNo: { type: Number, unique: true },
-  name: { type: String, required: true },
-  surname: { type: String, required: true },
-  email: { type: String, unique: true, required: true },
-  password: { type: String, required: true },
-  birthdate: { type: Date },
-  resetCode: { type: String },
-  resetCodeExpires: { type: Date },
-  isVerified: { type: Boolean, default: false },
-  role: { type: String, enum: ['super admin', 'admin', 'user'], default: 'user' },
-  approvalStatus: { type: String, enum: ['unverified', 'pending', 'approved', 'rejected'], default: 'unverified' },
-  profilePicture: { type: String, default: '' },
-  cloudinaryPublicId: { type: String, default: '' },
-  expired: { type: Boolean, default: false } // 🔥 NEW FIELD
+const User = sequelize.define('User', {
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  accountNo: { type: DataTypes.INTEGER, unique: true },
+  name: { type: DataTypes.STRING, allowNull: false },
+  surname: { type: DataTypes.STRING, allowNull: false },
+  email: { type: DataTypes.STRING, allowNull: false, unique: true },
+  password: { type: DataTypes.STRING, allowNull: false },
+  birthdate: { type: DataTypes.DATE },
+  resetCode: { type: DataTypes.STRING },
+  resetCodeExpires: { type: DataTypes.DATE },
+  isVerified: { type: DataTypes.BOOLEAN, defaultValue: false },
+  // Instead of storing a role as string, use a foreign key
+  // roleId will reference Role.id
+  approvalStatus: {
+    type: DataTypes.ENUM('unverified', 'pending', 'approved', 'rejected'),
+    defaultValue: 'unverified'
+  },
+  profilePicture: { type: DataTypes.STRING, defaultValue: '' },
+  cloudinaryPublicId: { type: DataTypes.STRING, defaultValue: '' },
+  expired: { type: DataTypes.BOOLEAN, defaultValue: false }
 });
 
-module.exports = mongoose.model('User', userSchema);
+// Define association
+User.belongsTo(Role, { foreignKey: 'roleId', as: 'role' });
+
+module.exports = User;
+
+
